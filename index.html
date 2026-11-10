@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0c10" />
+    <title>Commando 2 — Discord Activity</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23ffb020'/%3E%3Ctext x='16' y='22' font-family='sans-serif' font-size='14' font-weight='700' text-anchor='middle' fill='%23111'%3EC2%3C/text%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <main id="app">
+      <div id="stage" aria-label="Commando 2 game"></div>
+
+      <div id="loader" role="status" aria-live="polite">
+        <div class="loader__card">
+          <div class="loader__ring" aria-hidden="true"></div>
+          <p class="loader__title">Commando 2</p>
+          <p class="loader__status" id="loader-status">Loading the Flash game…</p>
+          <p class="loader__hint">Emulated with Ruffle · keyboard &amp; mouse recommended</p>
+        </div>
+      </div>
+
+      <div id="discord-card" class="discord-card" hidden></div>
+
+      <p id="preview-note" class="preview-note" hidden>
+        Browser preview — launch inside Discord to show the status on your profile.
+      </p>
+
+      <div id="fatal" class="fatal" hidden>
+        <div class="fatal__card">
+          <p class="fatal__title">The game could not start</p>
+          <p class="fatal__message" id="fatal-message"></p>
+          <button class="fatal__button" id="fatal-retry" type="button">Reload</button>
+        </div>
+      </div>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

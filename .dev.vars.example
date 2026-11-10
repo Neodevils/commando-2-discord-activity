@@ -1,0 +1,4 @@
+# Copy to .dev.vars for `npm run dev:cf` (Wrangler local mode only).
+# In production set these with `npx wrangler secret put`.
+DISCORD_CLIENT_ID=
+DISCORD_CLIENT_SECRET=
