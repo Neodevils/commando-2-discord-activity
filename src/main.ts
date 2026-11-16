@@ -2,7 +2,7 @@ import './style.css';
 import { connectDiscord, isEmbeddedInDiscord } from './discord';
 import type { DiscordSession } from './discord';
 import { mountGame } from './game';
-import { mountTouchControls } from './touch-controls';
+import { mountTouchControls, rememberTouchControls, shouldShowTouchControls } from './touch-controls';
 
 function requireElement<T extends Element>(selector: string): T {
   const element = document.querySelector<T>(selector);
@@ -18,6 +18,8 @@ const previewNote = document.querySelector<HTMLElement>('#preview-note');
 const fatal = document.querySelector<HTMLElement>('#fatal');
 const fatalMessage = document.querySelector<HTMLElement>('#fatal-message');
 const fatalRetry = document.querySelector<HTMLButtonElement>('#fatal-retry');
+const touchToggle = document.querySelector<HTMLButtonElement>('#touch-toggle');
+const fullscreenToggle = document.querySelector<HTMLButtonElement>('#fullscreen-toggle');
 
 function setLoaderStatus(text: string): void {
   if (loaderStatus) loaderStatus.textContent = text;
@@ -65,11 +67,60 @@ function showPreviewNote(): void {
   window.setTimeout(() => previewNote.classList.add('is-fading'), 9000);
 }
 
+function setupTouchToggle(setVisible: (visible: boolean) => void): void {
+  if (!touchToggle) return;
+
+  let visible = shouldShowTouchControls();
+  const sync = (): void => {
+    touchToggle.setAttribute('aria-pressed', String(visible));
+    touchToggle.textContent = visible ? 'Touch controls: on' : 'Touch controls: off';
+  };
+
+  setVisible(visible);
+  sync();
+  touchToggle.hidden = false;
+
+  touchToggle.addEventListener('click', () => {
+    visible = !visible;
+    setVisible(visible);
+    rememberTouchControls(visible);
+    sync();
+  });
+}
+
+/**
+ * Fullscreen the whole app so the Ruffle player scales to the screen (letterboxed
+ * to the game's aspect ratio). Hidden where the browser or Discord frame refuses it.
+ */
+function setupFullscreen(): void {
+  if (!fullscreenToggle || !document.fullscreenEnabled) return;
+  const app = document.querySelector<HTMLElement>('#app');
+  if (!app) return;
+
+  const sync = (): void => {
+    const active = document.fullscreenElement !== null;
+    fullscreenToggle.setAttribute('aria-pressed', String(active));
+    fullscreenToggle.textContent = active ? 'Exit fullscreen' : 'Fullscreen';
+  };
+
+  fullscreenToggle.addEventListener('click', () => {
+    const request = document.fullscreenElement ? document.exitFullscreen() : app.requestFullscreen();
+    request.catch((error: unknown) => {
+      console.warn('[fullscreen] The browser refused the request.', error);
+    });
+  });
+  document.addEventListener('fullscreenchange', sync);
+
+  sync();
+  fullscreenToggle.hidden = false;
+}
+
 async function boot(): Promise<void> {
   if (!isEmbeddedInDiscord()) showPreviewNote();
+  setupFullscreen();
 
   const game = mountGame(stage).then((player) => {
-    mountTouchControls(player);
+    setupTouchToggle(mountTouchControls(player));
     setLoaderStatus('Ready');
     window.setTimeout(hideLoader, 250);
   });

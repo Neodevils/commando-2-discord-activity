@@ -199,8 +199,53 @@ body {
 
 /* Touch controls */
 
+/* Top-left toolbar: touch toggle and fullscreen. */
+
+.toolbar {
+  position: absolute;
+  top: max(14px, env(safe-area-inset-top));
+  left: max(14px, env(safe-area-inset-left));
+  z-index: 4;
+  display: flex;
+  gap: 8px;
+}
+
+.toolbar__button {
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--text);
+  font: 600 11.5px/1 ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.toolbar__button[hidden] {
+  display: none;
+}
+
+.toolbar__button[aria-pressed='true'] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.toolbar__button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+#app:fullscreen {
+  background: #000;
+}
+
+/* Touch controls are hidden until enabled (by default on touch devices). */
+
 .touch-controls {
   --stick-size: clamp(104px, 32vw, 136px);
+  display: none;
   position: absolute;
   inset: 0;
   z-index: 3;
@@ -208,6 +253,10 @@ body {
   user-select: none;
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
+}
+
+.has-touch-controls .touch-controls {
+  display: block;
 }
 
 .touch-stick {

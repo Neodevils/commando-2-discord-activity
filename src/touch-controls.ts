@@ -1,3 +1,5 @@
+import { readSetting, writeSetting } from './settings';
+
 type Direction = 'up' | 'down' | 'left' | 'right';
 
 type KeySpec = {
@@ -28,20 +30,32 @@ const ARROW_GLYPHS: Record<Direction, string> = {
 };
 const DEADZONE = 0.35;
 
+const TOUCH_SETTING = 'touch-controls';
+
+/** A saved choice wins; otherwise show the pad on touch-first devices or with ?touch. */
 export function shouldShowTouchControls(): boolean {
+  const saved = readSetting(TOUCH_SETTING);
+  if (saved === 'on') return true;
+  if (saved === 'off') return false;
+
   if (new URLSearchParams(window.location.search).has('touch')) return true;
   return window.matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
 }
 
-/**
- * Overlays a thumb D-pad and weapon buttons on touch devices. The game itself
- * still receives taps on the uncovered area, which Ruffle turns into mouse aim
- * and fire, so the player can hold the pad with one thumb and shoot with the
- * other.
- */
-export function mountTouchControls(player: RufflePlayerElement): void {
-  if (!shouldShowTouchControls() || document.querySelector('.touch-controls')) return;
+/** Remembers the player's explicit choice across visits. */
+export function rememberTouchControls(visible: boolean): void {
+  writeSetting(TOUCH_SETTING, visible ? 'on' : 'off');
+}
 
+/**
+ * Overlays a thumb D-pad and weapon buttons. The game itself still receives taps
+ * on the uncovered area, which Ruffle turns into mouse aim and fire, so the player
+ * can hold the pad with one thumb and shoot with the other.
+ *
+ * The controls are always built so they can be toggled on and off at runtime.
+ * Returns a setter that shows or hides them.
+ */
+export function mountTouchControls(player: RufflePlayerElement): (visible: boolean) => void {
   const root = document.createElement('div');
   root.className = 'touch-controls';
 
@@ -92,7 +106,7 @@ export function mountTouchControls(player: RufflePlayerElement): void {
 
   root.append(stick, actions, hint);
   document.querySelector('#app')?.appendChild(root);
-  document.body.classList.add('has-touch-controls');
+  setVisible(shouldShowTouchControls());
 
   const held = new Map<string, KeySpec>();
   const active = new Set<Direction>();
@@ -250,5 +264,12 @@ export function mountTouchControls(player: RufflePlayerElement): void {
     if (document.hidden) releaseAll();
   });
 
+  function setVisible(visible: boolean): void {
+    // Release anything still held so hiding the pad mid-press cannot leave a key down.
+    if (!visible) releaseAll();
+    document.body.classList.toggle('has-touch-controls', visible);
+  }
+
   window.setTimeout(() => hint.classList.add('is-fading'), 9000);
+  return setVisible;
 }
